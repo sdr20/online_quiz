@@ -7,21 +7,18 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Connect to MongoDB Atlas
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// User Schema
 const userSchema = new mongoose.Schema({
   username: String,
-  password: String, // In production, hash this with bcrypt
-  role: String, // 'teacher' or 'student'
+  password: String,
+  role: String,
 });
 
 const User = mongoose.model('User', userSchema);
 
-// Quiz Schema
 const quizSchema = new mongoose.Schema({
   title: String,
   subject: String,
@@ -42,7 +39,6 @@ const quizSchema = new mongoose.Schema({
 
 const Quiz = mongoose.model('Quiz', quizSchema);
 
-// Quiz Result Schema
 const quizResultSchema = new mongoose.Schema({
   quizId: String,
   studentId: String,
@@ -59,8 +55,6 @@ const quizResultSchema = new mongoose.Schema({
 
 const QuizResult = mongoose.model('QuizResult', quizResultSchema);
 
-// API Routes
-// User Login
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password, role } = req.body;
@@ -74,7 +68,6 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Create a User (for testing; in production, use a proper signup flow)
 app.post('/api/users', async (req, res) => {
   try {
     const user = new User(req.body);
@@ -85,7 +78,6 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-// Get Quizzes
 app.get('/api/quizzes', async (req, res) => {
   try {
     const quizzes = await Quiz.find();
@@ -95,7 +87,6 @@ app.get('/api/quizzes', async (req, res) => {
   }
 });
 
-// Create a Quiz
 app.post('/api/quizzes', async (req, res) => {
   try {
     const quiz = new Quiz(req.body);
@@ -106,7 +97,6 @@ app.post('/api/quizzes', async (req, res) => {
   }
 });
 
-// Submit Quiz Results
 app.post('/api/submit-quiz', async (req, res) => {
   try {
     const result = new QuizResult(req.body);
@@ -117,7 +107,6 @@ app.post('/api/submit-quiz', async (req, res) => {
   }
 });
 
-// Get Quiz Results for a Student
 app.get('/api/results/:studentId', async (req, res) => {
   try {
     const results = await QuizResult.find({ studentId: req.params.studentId });
@@ -126,5 +115,12 @@ app.get('/api/results/:studentId', async (req, res) => {
     res.status(500).json({ error: 'Error fetching results' });
   }
 });
+
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
 
 module.exports = app;
