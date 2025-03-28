@@ -82,12 +82,12 @@ export default {
           password: this.password,
           role: this.role,
         });
-        // Store user in Vuex
-        this.$store.dispatch('login', response.data);
-        // Store user in localStorage
-        localStorage.setItem('user', JSON.stringify(response.data));
-        // Redirect to quiz list
-        this.$router.push('/quiz-list');
+        this.$store.commit('setUser', response.data);
+        if (this.role === 'student') {
+          this.$router.push('/quiz-list');
+        } else {
+          this.$router.push('/dashboard');
+        }
       } catch (error) {
         this.error = error.response?.data?.error || 'Error logging in';
       }

@@ -6,23 +6,13 @@ require('dotenv').config();
 
 const app = express();
 
-// Configure CORS with explicit headers
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://online-quiz.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'false');
-  next();
-});
-
-// Handle preflight requests
-app.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://online-quiz.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', 'false');
-  res.sendStatus(204);
-});
+// Use cors middleware to allow all origins
+app.use(cors({
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
+  allowedHeaders: ['Content-Type'], // Allowed headers
+  credentials: false, // No credentials (e.g., cookies)
+}));
 
 app.use(express.json());
 
