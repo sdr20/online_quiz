@@ -1,9 +1,18 @@
 {
   "version": 2,
-  "rewrites": [
+  "builds": [
     {
-      "source": "/((?!api).*)",
-      "destination": "/"
+      "src": "quiz-system/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "quiz-system/dist" }
+    },
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
     }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/index.js" },
+    { "src": "/(.*)", "dest": "quiz-system/dist/$1" }
   ]
 }
