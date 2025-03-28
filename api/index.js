@@ -21,7 +21,10 @@ mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-  .then(() => console.log('MongoDB connected'))
+  .then(() => {
+    console.log('MongoDB connected');
+    seedDatabase(); // Call the seeder after connecting to MongoDB
+  })
   .catch(err => console.error('MongoDB connection error:', err));
 
 // User Schema
@@ -77,6 +80,84 @@ const quizResultSchema = new mongoose.Schema({
 });
 
 const QuizResult = mongoose.model('QuizResult', quizResultSchema);
+
+// Seeder Function to Create Static Accounts and Sample Quiz
+const seedDatabase = async () => {
+  try {
+    // Seed Teacher Account
+    const teacherUsername = 'teacher1';
+    const teacherPassword = 'pass123'; // Password will be hashed
+    let teacher = await User.findOne({ username: teacherUsername });
+    if (!teacher) {
+      teacher = new User({
+        username: teacherUsername,
+        password: teacherPassword,
+        role: 'teacher',
+      });
+      await teacher.save();
+      console.log('Teacher account created:', teacherUsername);
+    }
+
+    // Seed Student Account
+    const studentUsername = 'student1';
+    const studentPassword = 'pass123'; // Password will be hashed
+    let student = await User.findOne({ username: studentUsername });
+    if (!student) {
+      student = new User({
+        username: studentUsername,
+        password: studentPassword,
+        role: 'student',
+      });
+      await student.save();
+      console.log('Student account created:', studentUsername);
+    }
+
+    // Seed Sample Quiz (created by the teacher)
+    const quizTitle = 'Sample Math Quiz';
+    let quiz = await Quiz.findOne({ title: quizTitle });
+    if (!quiz) {
+      quiz = new Quiz({
+        title: quizTitle,
+        subject: 'Mathematics',
+        pointsPerQuestion: 2,
+        questions: [
+          {
+            questionText: 'What is 2 + 2?',
+            options: [
+              { text: '3', isCorrect: false },
+              { text: '4', isCorrect: true },
+              { text: '5', isCorrect: false },
+              { text: '6', isCorrect: false },
+            ],
+          },
+          {
+            questionText: 'What is the square root of 16?',
+            options: [
+              { text: '2', isCorrect: false },
+              { text: '4', isCorrect: true },
+              { text: '8', isCorrect: false },
+              { text: '16', isCorrect: false },
+            ],
+          },
+          {
+            questionText: 'What is 5 * 3?',
+            options: [
+              { text: '10', isCorrect: false },
+              { text: '15', isCorrect: true },
+              { text: '20', isCorrect: false },
+              { text: '25', isCorrect: false },
+            ],
+          },
+        ],
+        createdBy: teacher._id.toString(),
+      });
+      await quiz.save();
+      console.log('Sample quiz created:', quizTitle);
+    }
+  } catch (error) {
+    console.error('Error seeding database:', error);
+  }
+};
 
 // Routes
 app.get('/', (req, res) => {
