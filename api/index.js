@@ -1,21 +1,28 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bcrypt = require('bcryptjs'); // Added for password hashing
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const app = express();
 
-// Configure CORS to allow requests from the frontend
-app.use(cors({
-  origin: 'https://online-quiz.vercel.app', // Ensure this matches your frontend URL exactly
-  methods: ['GET', 'POST', 'OPTIONS'], // Explicitly allow OPTIONS for preflight requests
-  allowedHeaders: ['Content-Type'], // Allow Content-Type header
-  credentials: false, // No credentials (e.g., cookies) are used
-}));
+// Configure CORS with explicit headers
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://online-quiz.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'false');
+  next();
+});
 
-// Explicitly handle preflight requests for all routes
-app.options('*', cors());
+// Handle preflight requests
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://online-quiz.vercel.app');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'false');
+  res.sendStatus(204);
+});
 
 app.use(express.json());
 
@@ -30,11 +37,10 @@ mongoose.connect(process.env.MONGO_URI, {
 // User Schema
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, // Will store hashed password
+  password: { type: String, required: true },
   role: { type: String, required: true, enum: ['student', 'teacher'] },
 });
 
-// Hash password before saving
 userSchema.pre('save', async function (next) {
   if (this.isModified('password')) {
     this.password = await bcrypt.hash(this.password, 10);
@@ -83,12 +89,10 @@ const quizResultSchema = new mongoose.Schema({
 const QuizResult = mongoose.model('QuizResult', quizResultSchema);
 
 // Routes
-// Root route (for testing)
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the Quiz System API' });
 });
 
-// Login
 app.post('/api/login', async (req, res) => {
   try {
     const { username, password, role } = req.body;
@@ -101,7 +105,6 @@ app.post('/api/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Compare hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -114,7 +117,6 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Create User
 app.post('/api/users', async (req, res) => {
   try {
     const { username, password, role } = req.body;
@@ -136,7 +138,6 @@ app.post('/api/users', async (req, res) => {
   }
 });
 
-// Get All Quizzes
 app.get('/api/quizzes', async (req, res) => {
   try {
     const quizzes = await Quiz.find();
@@ -147,7 +148,6 @@ app.get('/api/quizzes', async (req, res) => {
   }
 });
 
-// Create Quiz
 app.post('/api/quizzes', async (req, res) => {
   try {
     const { title, subject, pointsPerQuestion, questions, createdBy } = req.body;
@@ -164,7 +164,6 @@ app.post('/api/quizzes', async (req, res) => {
   }
 });
 
-// Submit Quiz
 app.post('/api/submit-quiz', async (req, res) => {
   try {
     const { quizId, studentId, score, total, answers } = req.body;
@@ -181,7 +180,6 @@ app.post('/api/submit-quiz', async (req, res) => {
   }
 });
 
-// Get Quiz Results for a Student
 app.get('/api/results/:studentId', async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -197,7 +195,6 @@ app.get('/api/results/:studentId', async (req, res) => {
   }
 });
 
-// Start the server locally (not used in Vercel)
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {
