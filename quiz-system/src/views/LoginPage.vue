@@ -63,8 +63,6 @@
 </template>
 
 <script>
-import api from '../api';
-
 export default {
   data() {
     return {
@@ -77,19 +75,18 @@ export default {
   methods: {
     async login() {
       try {
-        const response = await api.post('/api/login', {
+        await this.$store.dispatch('login', {
           username: this.username,
           password: this.password,
           role: this.role,
         });
-        this.$store.commit('setUser', response.data);
         if (this.role === 'student') {
           this.$router.push('/quiz-list');
         } else {
           this.$router.push('/dashboard');
         }
       } catch (error) {
-        this.error = error.response?.data?.error || 'Error logging in';
+        this.error = error.message || 'Error logging in';
       }
     },
   },

@@ -50,9 +50,13 @@ export default {
   methods: {
     logout() {
       this.$store.dispatch('logout');
-      localStorage.removeItem('user');
+      localStorage.removeItem('quizResults'); // Optional: Clear results on logout
       this.$router.push('/login');
     },
   },
 };
 </script>
+
+<style scoped>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css');
+</style>

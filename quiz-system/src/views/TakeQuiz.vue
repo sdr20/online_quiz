@@ -50,8 +50,6 @@
 </template>
 
 <script>
-import api from '../api';
-
 export default {
   data() {
     return {
@@ -65,7 +63,7 @@ export default {
       error: null,
     };
   },
-  async mounted() {
+  mounted() {
     try {
       this.loading = true;
       this.error = null;
@@ -75,14 +73,11 @@ export default {
         throw new Error('User not logged in');
       }
 
-      // Fetch quizzes
-      const response = await api.get('/api/quizzes');
-      if (!response.data || !Array.isArray(response.data)) {
-        throw new Error('No quizzes found or invalid response');
-      }
+      // Load results from localStorage
+      this.$store.dispatch('loadResults');
 
       // Find the quiz by ID
-      this.quiz = response.data.find(q => q._id === this.$route.params.id);
+      this.quiz = this.$store.state.quizzes.find(q => q._id === this.$route.params.id);
       if (!this.quiz) {
         throw new Error('Quiz not found');
       }
@@ -92,9 +87,9 @@ export default {
       this.submitted = new Array(this.quiz.questions.length).fill(false);
       this.total = this.quiz.questions.length * this.quiz.pointsPerQuestion;
 
-      // Fetch quiz results for the user
-      const resultResponse = await api.get(`/api/results/${this.$store.state.user._id}`);
-      const result = resultResponse.data.find(r => r.quizId === this.quiz._id);
+      // Check if the user has already taken this quiz
+      const userResults = this.$store.getters.getResultsByStudent(this.$store.state.user._id);
+      const result = userResults.find(r => r.quizId === this.quiz._id);
       if (result) {
         this.isSubmitted = true;
         this.score = result.score;
@@ -102,7 +97,7 @@ export default {
         this.submitted = new Array(this.quiz.questions.length).fill(true);
       }
     } catch (error) {
-      console.error('Error fetching quiz:', error);
+      console.error('Error loading quiz:', error);
       this.error = error.message || 'An error occurred while loading the quiz';
       if (this.error === 'User not logged in') {
         this.$router.push('/login');
@@ -112,7 +107,7 @@ export default {
     }
   },
   methods: {
-    async submitAnswer(index) {
+    submitAnswer(index) {
       this.submitted[index] = true;
 
       if (this.answers.every(answer => answer !== null)) {
@@ -133,18 +128,14 @@ export default {
         this.score = score;
         this.total = total;
 
-        try {
-          await api.post('/api/submit-quiz', {
-            quizId: this.quiz._id,
-            studentId: this.$store.state.user._id,
-            score,
-            total,
-            answers: resultAnswers,
-          });
-        } catch (error) {
-          console.error('Error submitting quiz:', error);
-          this.error = 'Failed to submit quiz';
-        }
+        // Save the result to Vuex (and localStorage)
+        this.$store.dispatch('submitQuiz', {
+          quizId: this.quiz._id,
+          studentId: this.$store.state.user._id,
+          score,
+          total,
+          answers: resultAnswers,
+        });
       }
     },
     getOptionClass(questionIndex, optionIndex) {

@@ -104,8 +104,6 @@
 </template>
 
 <script>
-import api from '../api';
-
 export default {
   data() {
     return {
@@ -135,19 +133,17 @@ export default {
     addOption(questionIndex) {
       this.quiz.questions[questionIndex].options.push({ text: '', isCorrect: false });
     },
-    async createQuiz() {
+    createQuiz() {
       this.quiz.questions.forEach((question, index) => {
         question.options.forEach((option, optIndex) => {
           option.isCorrect = optIndex === this.correctOptions[index];
         });
       });
 
-      try {
-        await api.post('/api/quizzes', this.quiz);
-        this.$router.push('/quiz-list');
-      } catch (error) {
-        console.error('Error creating quiz:', error);
-      }
+      // Simulate saving the quiz (log to console for now)
+      console.log('New Quiz Created:', this.quiz);
+      alert('Quiz created successfully! (Logged to console since this is a static site)');
+      this.$router.push('/quiz-list');
     },
   },
 };
