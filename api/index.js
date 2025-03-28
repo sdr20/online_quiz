@@ -1,18 +1,20 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const app = express();
 
-// Use cors middleware to allow all origins
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
-  credentials: false,
-}));
+// Manually set CORS headers
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
 
 app.use(express.json());
 
@@ -23,7 +25,7 @@ mongoose.connect(process.env.MONGO_URI, {
 })
   .then(() => {
     console.log('MongoDB connected');
-    seedDatabase(); // Call the seeder after connecting to MongoDB
+    seedDatabase();
   })
   .catch(err => console.error('MongoDB connection error:', err));
 
@@ -86,7 +88,7 @@ const seedDatabase = async () => {
   try {
     // Seed Teacher Account
     const teacherUsername = 'teacher1';
-    const teacherPassword = 'pass123'; // Password will be hashed
+    const teacherPassword = 'pass123';
     let teacher = await User.findOne({ username: teacherUsername });
     if (!teacher) {
       teacher = new User({
@@ -100,7 +102,7 @@ const seedDatabase = async () => {
 
     // Seed Student Account
     const studentUsername = 'student1';
-    const studentPassword = 'pass123'; // Password will be hashed
+    const studentPassword = 'pass123';
     let student = await User.findOne({ username: studentUsername });
     if (!student) {
       student = new User({
@@ -112,7 +114,7 @@ const seedDatabase = async () => {
       console.log('Student account created:', studentUsername);
     }
 
-    // Seed Sample Quiz (created by the teacher)
+    // Seed Sample Quiz
     const quizTitle = 'Sample Math Quiz';
     let quiz = await Quiz.findOne({ title: quizTitle });
     if (!quiz) {
