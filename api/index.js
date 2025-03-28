@@ -8,10 +8,10 @@ const app = express();
 
 // Use cors middleware to allow all origins
 app.use(cors({
-  origin: '*', // Allow all origins
-  methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
-  allowedHeaders: ['Content-Type'], // Allowed headers
-  credentials: false, // No credentials (e.g., cookies)
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+  credentials: false,
 }));
 
 app.use(express.json());
