@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || 'http://localhost:3000',
+  baseURL: 'https://quiz-system-api.vercel.app',
 });
 
 export default api;
